@@ -10,9 +10,9 @@ mvn archetype:generate ^
  -DinteractiveMode=false
  -DjavaCompilerVersion=25
 
-本地redis已经启动且跑在6379端口
+Redis 7.0.15已经启动且跑在6379端口
 
-本地mysql已经启动且跑在3306端口，密码123456
+MySQL80已经启动且跑在3306端口，密码123456
 
 现在处于名为claude的git分支中
 
