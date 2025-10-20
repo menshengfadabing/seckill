@@ -14,6 +14,8 @@ mvn archetype:generate ^
 
 本地mysql已经启动且跑在3306端口，密码123456
 
+现在处于名为claude的git分支中
+
 相关依赖和框架请采用较新的版本，如
 springboot 4.0.x
 
