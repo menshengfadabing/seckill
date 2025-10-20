@@ -1,4 +1,4 @@
-maven环境初始化配置：
+maven环境初始化配置(maven3.9.11)
 mvn archetype:generate ^
  -DarchetypeGroupId=org.apache.maven.archetypes ^
  -DarchetypeArtifactId=maven-archetype-quickstart ^
