@@ -17,21 +17,28 @@ public class SeckillProduct {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "product_id", nullable = false)
     private Long productId;
 
+    @Column(name = "seckill_price", nullable = false, precision = 10, scale = 2)
     private BigDecimal seckillPrice;
 
+    @Column(name = "stock_count", nullable = false)
     private Integer stockCount;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
+    @Column(name = "status")
     private Integer status;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Column(name = "create_time", updatable = false)
     private LocalDateTime createTime;
 
     public SeckillProduct() {}

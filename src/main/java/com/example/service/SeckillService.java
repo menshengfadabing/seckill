@@ -164,8 +164,15 @@ public class SeckillService {
     @Transactional
     public boolean addSeckillProduct(SeckillProduct seckillProduct) {
         try {
+            // 设置默认值
+            if (seckillProduct.getStatus() == null) {
+                seckillProduct.setStatus(1); // 默认状态为正常
+            }
+
             entityManager.persist(seckillProduct);
-            if (seckillProduct.getId() != null) {
+            entityManager.flush(); // 强制刷新以获取ID
+
+            if (seckillProduct.getId() != null && seckillProduct.getId() > 0) {
                 // 清除缓存并预热库存
                 redisTemplate.delete("seckill:products:all");
                 preloadSeckillStock(seckillProduct.getId());
@@ -173,7 +180,10 @@ public class SeckillService {
             }
             return false;
         } catch (Exception e) {
-            return false;
+            // 记录错误信息（在实际项目中应该使用日志框架）
+            System.err.println("添加秒杀商品失败: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("添加秒杀商品失败: " + e.getMessage(), e);
         }
     }
 
