@@ -24,7 +24,5 @@ test/
 *.jpg
 *.png
 
-.claude/
-*.settings.local.json
-
 nul
+.claude/settings.local.json
