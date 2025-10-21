@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: seckill-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: seckill
+      MYSQL_USER: seckill_user
+      MYSQL_PASSWORD: seckill_pass
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/sql:/docker-entrypoint-initdb.d
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    networks:
+      - seckill-network
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis缓存服务
+  redis:
+    image: redis:6.2-alpine
+    container_name: seckill-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+    networks:
+      - seckill-network
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+  # 秒杀应用服务
+  seckill-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # 强制覆盖代理设置，避免构建时网络问题
+        HTTP_PROXY: ""
+        HTTPS_PROXY: ""
+        NO_PROXY: "localhost,127.0.0.1,172.20.0.0/16,172.16.0.0/12,192.168.0.0/16"
+    container_name: seckill-app
+    restart: unless-stopped
+    environment:
+      # 数据库配置
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/seckill?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: seckill_user
+      SPRING_DATASOURCE_PASSWORD: seckill_pass
+      SPRING_DATASOURCE_DRIVER-CLASS-NAME: com.mysql.cj.jdbc.Driver
+
+      # Redis配置
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_TIMEOUT: 10000ms
+      SPRING_DATA_REDIS_LETTUCE_POOL_MAX_ACTIVE: 8
+      SPRING_DATA_REDIS_LETTUCE_POOL_MAX_IDLE: 8
+      SPRING_DATA_REDIS_LETTUCE_POOL_MIN_IDLE: 0
+
+      # JPA配置
+      SPRING_JPA_HIBERNATE_DDL-AUTO: none
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
+
+      # 应用配置
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATION_NAME: seckill-system
+      SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: 30s
+
+      # JVM参数
+      JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport -Dfile.encoding=UTF-8"
+
+      # 时区配置
+      TZ: Asia/Shanghai
+
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - seckill-network
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Nginx反向代理 (可选)
+  nginx:
+    image: nginx:alpine
+    container_name: seckill-nginx
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - seckill-app
+    networks:
+      - seckill-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  seckill-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

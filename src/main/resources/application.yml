@@ -1,0 +1,107 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  # 优雅关闭配置
+  shutdown: graceful
+  # 等待所有请求完成的最大时间（秒）
+  tomcat:
+    connection-timeout: 20000
+    max-threads: 200
+    min-spare-threads: 10
+
+spring:
+  application:
+    name: seckill-system
+  # 生命周期配置
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  # DevTools配置
+  devtools:
+    restart:
+      enabled: true
+      # 排除不会触发重启的资源
+      exclude: static/**,public/**,templates/**,META-INF/maven/**,META-INF/resources/**,resources/**
+      # 设置重启触发器文件
+      trigger-file: .restarttrigger
+    # LiveReload配置
+    livereload:
+      enabled: true
+      port: 35729
+
+  # 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/seckill?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: root
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: HikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-wait: -1ms
+          max-idle: 8
+          min-idle: 0
+
+  # Thymeleaf配置
+  thymeleaf:
+    cache: false
+    encoding: UTF-8
+    mode: HTML
+    suffix: .html
+
+# MyBatis Plus配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/*.xml
+  type-aliases-package: com.example.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# SpringDoc配置
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+
+# 日志配置
+logging:
+  level:
+    com.example: debug
+    org.springframework.data.redis: debug
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'

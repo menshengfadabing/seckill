@@ -1,0 +1,55 @@
+# Maven
+target/
+.mvnw
+.mvn/
+.m2/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# 日志
+logs/
+*.log
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# OS文件
+.DS_Store?
+ehthumbs.db
+Icon?
+
+# 测试
+test/
+*.test
+
+# Git
+.git/
+.gitignore
+
+# 文档
+docs/
+README.md
+*.md
+
+# Docker文件
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 配置文件
+nginx/
+redis/
+mysql/
+
+# 脚本
+*.sh
+*.bat
+*.py
