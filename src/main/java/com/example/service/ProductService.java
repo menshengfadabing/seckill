@@ -4,7 +4,7 @@ import com.example.entity.Product;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.redis.core.RedisTemplate;
-import jakarta.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +20,7 @@ public class ProductService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Inject
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     /**

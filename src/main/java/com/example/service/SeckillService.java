@@ -6,7 +6,7 @@ import com.example.entity.Product;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.redis.core.RedisTemplate;
-import jakarta.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ public class SeckillService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Inject
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -119,14 +119,24 @@ public class SeckillService {
         order.setOrderNo(orderNo);
         order.setUserId(userId);
         order.setProductId(seckillProduct.getProductId());
-        order.setSeckillId(seckillId);
         order.setSeckillPrice(seckillProduct.getSeckillPrice());
         order.setCreateTime(now);
 
         try {
             entityManager.persist(order);
             if (order.getId() != null) {
-                // 5. 标记用户已购买
+                // 5. 扣减商品库存
+                Product product = entityManager.find(Product.class, seckillProduct.getProductId());
+                if (product != null && product.getStockCount() > 0) {
+                    product.setStockCount(product.getStockCount() - 1);
+                    entityManager.merge(product);
+
+                    // 清除商品缓存
+                    redisTemplate.delete("product:" + product.getId());
+                    redisTemplate.delete("products:all");
+                }
+
+                // 6. 标记用户已购买
                 redisTemplate.opsForValue().set(userKey, "1");
 
                 // 设置过期时间为活动结束时间
@@ -173,5 +183,48 @@ public class SeckillService {
     public boolean hasUserPurchased(Long userId, Long seckillId) {
         String userKey = "user:" + userId + ":seckill:" + seckillId;
         return redisTemplate.hasKey(userKey);
+    }
+
+    /**
+     * 获取用户的秒杀订单列表
+     */
+    public List<SeckillOrder> getUserOrders(Long userId) {
+        String cacheKey = "user:orders:" + userId;
+        List<SeckillOrder> orders = (List<SeckillOrder>) redisTemplate.opsForValue().get(cacheKey);
+
+        if (orders == null) {
+            orders = entityManager.createQuery(
+                "SELECT so FROM SeckillOrder so WHERE so.userId = :userId ORDER BY so.createTime DESC",
+                SeckillOrder.class)
+                .setParameter("userId", userId)
+                .getResultList();
+
+            redisTemplate.opsForValue().set(cacheKey, orders, 10, TimeUnit.MINUTES);
+        }
+
+        return orders;
+    }
+
+    /**
+     * 根据订单号获取订单详情
+     */
+    public SeckillOrder getOrderByNo(String orderNo) {
+        String cacheKey = "order:no:" + orderNo;
+        SeckillOrder order = (SeckillOrder) redisTemplate.opsForValue().get(cacheKey);
+
+        if (order == null) {
+            List<SeckillOrder> orders = entityManager.createQuery(
+                "SELECT so FROM SeckillOrder so WHERE so.orderNo = :orderNo",
+                SeckillOrder.class)
+                .setParameter("orderNo", orderNo)
+                .getResultList();
+
+            if (!orders.isEmpty()) {
+                order = orders.get(0);
+                redisTemplate.opsForValue().set(cacheKey, order, 30, TimeUnit.MINUTES);
+            }
+        }
+
+        return order;
     }
 }

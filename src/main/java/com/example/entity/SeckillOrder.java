@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * 秒杀订单实体类
  */
 @Entity
-@Table(name = "seckill_orders")
+@Table(name = "tb_seckill_order")
 public class SeckillOrder {
 
     @Id
@@ -23,17 +23,12 @@ public class SeckillOrder {
 
     private Long productId;
 
-    private Long seckillId;
-
     private BigDecimal seckillPrice;
 
     private Integer status;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime payTime;
 
     public SeckillOrder() {}
 
@@ -77,14 +72,6 @@ public class SeckillOrder {
         this.productId = productId;
     }
 
-    public Long getSeckillId() {
-        return seckillId;
-    }
-
-    public void setSeckillId(Long seckillId) {
-        this.seckillId = seckillId;
-    }
-
     public BigDecimal getSeckillPrice() {
         return seckillPrice;
     }
@@ -107,14 +94,6 @@ public class SeckillOrder {
 
     public void setCreateTime(LocalDateTime createTime) {
         this.createTime = createTime;
-    }
-
-    public LocalDateTime getPayTime() {
-        return payTime;
-    }
-
-    public void setPayTime(LocalDateTime payTime) {
-        this.payTime = payTime;
     }
 
     @Override

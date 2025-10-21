@@ -1,13 +1,14 @@
 package com.example.service;
 
 import com.example.entity.User;
+import com.example.exception.BusinessException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
-import jakarta.inject.Inject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +21,7 @@ public class UserService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Inject
+    @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -28,6 +29,13 @@ public class UserService {
      */
     @Transactional
     public boolean register(String username, String password) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new BusinessException("用户名不能为空");
+        }
+        if (password == null || password.trim().isEmpty()) {
+            throw new BusinessException("密码不能为空");
+        }
+
         try {
             // 检查用户名是否已存在
             User existUser = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
@@ -37,7 +45,7 @@ public class UserService {
                     .orElse(null);
 
             if (existUser != null) {
-                return false; // 用户名已存在
+                throw new BusinessException("用户名已存在");
             }
 
             // 密码加密
@@ -48,8 +56,10 @@ public class UserService {
             entityManager.persist(user);
 
             return true;
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
-            return false;
+            throw new BusinessException("注册失败: " + e.getMessage());
         }
     }
 

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class SeckillController {
     @Operation(summary = "获取秒杀商品详情", description = "根据秒杀商品ID获取详细信息")
     public Result<SeckillProduct> getSeckillProductDetail(
             @Parameter(description = "秒杀商品ID", required = true)
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         try {
             SeckillProduct product = seckillService.getSeckillProductById(id);
             if (product != null) {
@@ -62,7 +63,7 @@ public class SeckillController {
     @Operation(summary = "执行秒杀", description = "用户执行秒杀操作")
     public Result<Map<String, Object>> doSeckill(
             @Parameter(description = "秒杀请求参数", required = true)
-            @RequestBody SeckillRequest request) {
+            @Valid @RequestBody SeckillRequest request) {
         try {
             Long userId = request.getUserId();
             Long seckillId = request.getSeckillId();
@@ -119,7 +120,7 @@ public class SeckillController {
     @Operation(summary = "预热秒杀库存", description = "将秒杀商品库存预热到Redis")
     public Result<String> preloadSeckillStock(
             @Parameter(description = "秒杀商品ID", required = true)
-            @PathVariable Long id) {
+            @PathVariable("id") Long id) {
         try {
             seckillService.preloadSeckillStock(id);
             return Result.success("库存预热成功");
@@ -132,9 +133,9 @@ public class SeckillController {
     @Operation(summary = "检查用户是否已购买", description = "检查用户是否已经购买过指定的秒杀商品")
     public Result<Map<String, Object>> checkUserPurchase(
             @Parameter(description = "用户ID", required = true)
-            @PathVariable Long userId,
+            @PathVariable("userId") Long userId,
             @Parameter(description = "秒杀商品ID", required = true)
-            @PathVariable Long seckillId) {
+            @PathVariable("seckillId") Long seckillId) {
         try {
             boolean hasPurchased = seckillService.hasUserPurchased(userId, seckillId);
 
@@ -146,6 +147,36 @@ public class SeckillController {
             return Result.success("查询成功", result);
         } catch (Exception e) {
             return Result.error("查询失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/orders/{userId}")
+    @Operation(summary = "获取用户秒杀订单列表", description = "获取指定用户的所有秒杀订单")
+    public Result<List<SeckillOrder>> getUserOrders(
+            @Parameter(description = "用户ID", required = true)
+            @PathVariable("userId") Long userId) {
+        try {
+            List<SeckillOrder> orders = seckillService.getUserOrders(userId);
+            return Result.success("获取用户订单列表成功", orders);
+        } catch (Exception e) {
+            return Result.error("获取用户订单列表失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/order/{orderNo}")
+    @Operation(summary = "根据订单号获取订单详情", description = "根据订单号获取订单详细信息")
+    public Result<SeckillOrder> getOrderByNo(
+            @Parameter(description = "订单号", required = true)
+            @PathVariable("orderNo") String orderNo) {
+        try {
+            SeckillOrder order = seckillService.getOrderByNo(orderNo);
+            if (order != null) {
+                return Result.success("获取订单详情成功", order);
+            } else {
+                return Result.error("订单不存在");
+            }
+        } catch (Exception e) {
+            return Result.error("获取订单详情失败: " + e.getMessage());
         }
     }
 }

@@ -57,6 +57,20 @@
       <version>3.5.6</version>
     </dependency>
 
+    <!-- Spring Boot Starter Validation -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+      <version>3.5.6</version>
+    </dependency>
+
+    <!-- Hibernate Validator -->
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>8.0.1.Final</version>
+    </dependency>
+
     <!-- MySQL Driver -->
     <dependency>
       <groupId>com.mysql</groupId>
@@ -68,7 +82,7 @@
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-      <version>2.3.0</version>
+      <version>2.7.0</version>
     </dependency>
 
     <!-- Jakarta Inject API -->
@@ -114,6 +128,13 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>3.5.6</version>
+        <configuration>
+          <!-- 不再 fork 新 JVM，直接在当前 Maven 进程里跑 Spring Boot -->
+          <fork>false</fork>
+          <!-- 关闭 devtools 的重启与文件监视 -->
+          <excludeDevtools>false</excludeDevtools>
+          <addResources>false</addResources>
+        </configuration>
         <executions>
           <execution>
             <goals>
