@@ -8,7 +8,8 @@
       "Bash(mvn clean spring-boot:run:*)",
       "Bash(netstat:*)",
       "Bash(curl:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(docker-compose up:*)"
     ],
     "deny": [],
     "ask": []
