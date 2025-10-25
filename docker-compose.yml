@@ -16,7 +16,7 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./src/main/resources/sql:/docker-entrypoint-initdb.d
+      - ./seckill-backend/src/main/resources/sql:/docker-entrypoint-initdb.d
       - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     networks:
       - seckill-network
@@ -47,7 +47,7 @@ services:
   # 秒杀应用服务
   seckill-app:
     build:
-      context: .
+      context: ./seckill-backend
       dockerfile: Dockerfile
       args:
         # 强制覆盖代理设置，避免构建时网络问题

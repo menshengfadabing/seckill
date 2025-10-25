@@ -9,7 +9,9 @@
       "Bash(netstat:*)",
       "Bash(curl:*)",
       "Bash(python:*)",
-      "Bash(docker-compose up:*)"
+      "Bash(docker-compose up:*)",
+      "Bash(npm install react-router-dom axios lucide-react)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
